@@ -13,7 +13,7 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         date TEXT NOT NULL,
-        description TEXT NOT NULL  -- Added description field
+        description TEXT NOT NULL
     )
     ''')
     conn.commit()
@@ -52,7 +52,7 @@ def create_event():
 def submit_event():
     name = request.form['name']
     date = request.form['date']
-    description = request.form['description']  # Capture description
+    description = request.form['description']
     
     errors = validate_event(name, date, description)
     if errors:
@@ -63,7 +63,7 @@ def submit_event():
     try:
         conn = sqlite3.connect('events.db')
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO events (name, date, description) VALUES (?, ?, ?)', (name, date, description))  # Insert description
+        cursor.execute('INSERT INTO events (name, date, description) VALUES (?, ?, ?)', (name, date, description))
         conn.commit()
         conn.close()
         flash('Event created successfully!', 'success')
@@ -106,7 +106,7 @@ def edit_event(id):
 def update_event(id):
     name = request.form['name']
     date = request.form['date']
-    description = request.form['description']  # Capture updated description
+    description = request.form['description']
     
     errors = validate_event(name, date, description)
     if errors:
@@ -117,7 +117,7 @@ def update_event(id):
     try:
         conn = sqlite3.connect('events.db')
         cursor = conn.cursor()
-        cursor.execute('UPDATE events SET name = ?, date = ?, description = ? WHERE id = ?', (name, date, description, id))  # Update description
+        cursor.execute('UPDATE events SET name = ?, date = ?, description = ? WHERE id = ?', (name, date, description, id))
         conn.commit()
         conn.close()
         flash('Event updated successfully!', 'success')
