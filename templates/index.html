@@ -87,18 +87,14 @@
     <main>
         <section class="event-list">
             <h2>Upcoming Events</h2>
+            {% for event in events %}
             <div class="event-item">
-                <h3>Orchestra 2025 - 2025-05-01</h3>
-                <p>Join us for a night of classical music performed by our esteemed orchestra.</p>
+                <h3>{{ event.name }} - {{ event.date }}</h3>
+                <p>{{ event.description }}</p>
                 <a href="#" class="button">Edit</a>
                 <a href="#" class="button">Delete</a>
             </div>
-            <div class="event-item">
-                <h3>Media Celebration - 2024-12-08</h3>
-                <p>Annual gala celebrating achievements in media and journalism.</p>
-                <a href="#" class="button">Edit</a>
-                <a href="#" class="button">Delete</a>
-            </div>
+            {% endfor %}
         </section>
         
         <section class="create-event">
