@@ -1,7 +1,14 @@
 {
-  "name": "event-management",
-  "version": "1.0.0",
-  "dependencies": {
-    "express": "^4.17.1"
+    "name": "Event-Management",
+    "version": "1.0.0",
+    "description": "Event management system",
+    "main": "app.js",  
+    "scripts": {
+      "start": "node index.js"  
+    },
+    "dependencies": {
+      // List your npm dependencies here
+      "express": "^4.17.1"  
+    }
   }
-}
+  
