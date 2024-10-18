@@ -4,44 +4,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Management System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(to bottom right, #eaf0f7, #ffffff);
+        }
+        header {
+            background: linear-gradient(to right, #5b86e5, #36d1dc);
+            color: #fff;
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .event-list {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .event-item {
+            background: linear-gradient(to right, #f0f4c3, #e0e7ff);
+            border: 1px solid #bde0fe;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .event-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .event-item h3 {
+            margin-top: 0;
+            color: #1976d2;
+            font-size: 1.5em;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(to right, #ff6a00, #ee0979);
+            color: #fff;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+        .button:hover {
+            background: linear-gradient(to right, #ee0979, #ff6a00);
+        }
+        .create-event {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .create-event .button {
+            font-size: 1.2em;
+            padding: 12px 25px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #777;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
-    <div>
+    <header>
         <h1>Event Management System</h1>
-    </div>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <ul>
-            {% for category, message in messages %}
-                <li class="{{ category }}">{{ message }}</li>
-            {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-
-    <div role="main">
-        <div class="section event-list">
+    </header>
+    
+    <main>
+        <section class="event-list">
             <h2>Upcoming Events</h2>
-            {% for event in events %}
-                <div class="event-item">
-                    <h3>{{ event['name'] }} - {{ event['date'] }}</h3>
-                    <p>{{ event['description'] }}</p>
-                    <form action="{{ url_for('delete_event', id=event['id']) }}" method="post">
-                        <input type="submit" value="Delete">
-                    </form>
-                    <a href="{{ url_for('edit_event', id=event['id']) }}" class="button">Edit</a>
-                </div>
-            {% endfor %}
-        </div>
-
-        <div class="section create-event">
-            <a href="{{ url_for('create_event') }}" class="button">Create New Event</a>
-        </div>
-    </div>
+            <div class="event-item">
+                <h3>Orchestra 2025 - 2025-05-01</h3>
+                <p>Join us for a night of classical music performed by our esteemed orchestra.</p>
+                <a href="#" class="button">Edit</a>
+                <a href="#" class="button">Delete</a>
+            </div>
+            <div class="event-item">
+                <h3>Media Celebration - 2024-12-08</h3>
+                <p>Annual gala celebrating achievements in media and journalism.</p>
+                <a href="#" class="button">Edit</a>
+                <a href="#" class="button">Delete</a>
+            </div>
+        </section>
+        
+        <section class="create-event">
+            <a href="#" class="button">Create New Event</a>
+        </section>
+    </main>
 
     <footer>
-        © 2024 Event Management System. Created by Eya Bouzayen
+        <p>&copy; 2024 Event Management System. Created by [Your Name]</p>
     </footer>
 </body>
 </html>

@@ -1,90 +1,131 @@
-import os
 from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_sqlalchemy import SQLAlchemy
+import sqlite3
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'fallback_secret_key')
+app.secret_key = 'your_secret_key_here'  # Required for flashing messages
 
-# Database configuration
-database_url = os.environ.get('DATABASE_URL')
-if database_url:
-    # Handle potential "postgres://" style URLs for Railway
-    if database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql://", 1)
-else:
-    database_url = 'sqlite:///events.db'
+def init_db():
+    conn = sqlite3.connect('events.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        date TEXT NOT NULL,
+        description TEXT NOT NULL
+    )
+    ''')
+    conn.commit()
+    conn.close()
 
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Initialize SQLAlchemy after all configurations are set
-db = SQLAlchemy(app)
-
-class Event(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    date = db.Column(db.String(10), nullable=False)
-    description = db.Column(db.Text, nullable=False)
-
-# Ensure all routes are registered before running create_all()
-@app.before_first_request
-def create_tables():
-    db.create_all()
+def validate_event(name, date, description):
+    errors = []
+    if not name or len(name) < 3:
+        errors.append("Event name must be at least 3 characters long.")
+    try:
+        datetime.strptime(date, '%Y-%m-%d')
+    except ValueError:
+        errors.append("Invalid date format. Please use YYYY-MM-DD.")
+    if not description or len(description) < 5:
+        errors.append("Event description must be at least 5 characters long.")
+    return errors
 
 @app.route('/')
 def home():
-    events = Event.query.all()
-    return render_template('index.html', events=events)
+    try:
+        conn = sqlite3.connect('events.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM events')
+        events = cursor.fetchall()
+        conn.close()
+        return render_template('index.html', events=events)
+    except sqlite3.Error as e:
+        flash(f"An error occurred: {str(e)}", 'error')
+        return render_template('index.html', events=[])
 
-@app.route('/create_event', methods=['GET', 'POST'])
+@app.route('/create_event')
 def create_event():
-    if request.method == 'POST':
-        name = request.form['name']
-        date = request.form['date']
-        description = request.form['description']
-        
-        new_event = Event(name=name, date=date, description=description)
-        try:
-            db.session.add(new_event)
-            db.session.commit()
-            flash('Event created successfully!', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error creating event: {str(e)}', 'error')
-        return redirect(url_for('home'))
-    return render_template('event_form.html', event=None)
+    return render_template('event_form.html')
 
-@app.route('/edit_event/<int:id>', methods=['GET', 'POST'])
-def edit_event(id):
-    event = Event.query.get_or_404(id)
+@app.route('/submit_event', methods=['POST'])
+def submit_event():
+    name = request.form['name']
+    date = request.form['date']
+    description = request.form['description']
     
-    if request.method == 'POST':
-        try:
-            event.name = request.form['name']
-            event.date = request.form['date']
-            event.description = request.form['description']
-            db.session.commit()
-            flash('Event updated successfully!', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error updating event: {str(e)}', 'error')
+    errors = validate_event(name, date, description)
+    if errors:
+        for error in errors:
+            flash(error, 'error')
+        return render_template('event_form.html', name=name, date=date, description=description)
+    
+    try:
+        conn = sqlite3.connect('events.db')
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO events (name, date, description) VALUES (?, ?, ?)', (name, date, description))
+        conn.commit()
+        conn.close()
+        flash('Event created successfully!', 'success')
         return redirect(url_for('home'))
-    
-    return render_template('event_form.html', event=event)
+    except sqlite3.Error as e:
+        flash(f"An error occurred while creating the event: {str(e)}", 'error')
+        return render_template('event_form.html', name=name, date=date, description=description)
 
 @app.route('/delete_event/<int:id>', methods=['POST'])
 def delete_event(id):
-    event = Event.query.get_or_404(id)
     try:
-        db.session.delete(event)
-        db.session.commit()
+        conn = sqlite3.connect('events.db')
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM events WHERE id = ?', (id,))
+        conn.commit()
+        conn.close()
         flash('Event deleted successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error deleting event: {str(e)}', 'error')
+    except sqlite3.Error as e:
+        flash(f"An error occurred while deleting the event: {str(e)}", 'error')
     return redirect(url_for('home'))
 
+@app.route('/edit_event/<int:id>')
+def edit_event(id):
+    try:
+        conn = sqlite3.connect('events.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM events WHERE id = ?', (id,))
+        event = cursor.fetchone()
+        conn.close()
+        if event:
+            return render_template('edit_event.html', event=event)
+        else:
+            flash('Event not found.', 'error')
+            return redirect(url_for('home'))
+    except sqlite3.Error as e:
+        flash(f"An error occurred: {str(e)}", 'error')
+        return redirect(url_for('home'))
+
+@app.route('/update_event/<int:id>', methods=['POST'])
+def update_event(id):
+    name = request.form['name']
+    date = request.form['date']
+    description = request.form['description']
+    
+    errors = validate_event(name, date, description)
+    if errors:
+        for error in errors:
+            flash(error, 'error')
+        return render_template('edit_event.html', event=(id, name, date, description))
+    
+    try:
+        conn = sqlite3.connect('events.db')
+        cursor = conn.cursor()
+        cursor.execute('UPDATE events SET name = ?, date = ?, description = ? WHERE id = ?', (name, date, description, id))
+        conn.commit()
+        conn.close()
+        flash('Event updated successfully!', 'success')
+        return redirect(url_for('home'))
+    except sqlite3.Error as e:
+        flash(f"An error occurred while updating the event: {str(e)}", 'error')
+        return render_template('edit_event.html', event=(id, name, date, description))
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    init_db()
+    app.run(debug=True)
