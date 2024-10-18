@@ -6,7 +6,9 @@
     <title>Event Management System</title>
 </head>
 <body>
-    <h1>Event Management System</h1>
+    <div>
+        <h1>Event Management System</h1>
+    </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -18,18 +20,28 @@
         {% endif %}
     {% endwith %}
 
-    <h2>Upcoming Events</h2>
-    {% for event in events %}
-        <div class="event-item">
-            <h3>{{ event['name'] }} - {{ event['date'] }}</h3>
-            <p>{{ event['description'] }}</p>
-            <form action="{{ url_for('delete_event', id=event['id']) }}" method="post">
-                <input type="submit" value="Delete">
-            </form>
-            <a href="{{ url_for('edit_event', id=event['id']) }}">Edit</a>
+    <div role="main">
+        <div class="section event-list">
+            <h2>Upcoming Events</h2>
+            {% for event in events %}
+                <div class="event-item">
+                    <h3>{{ event['name'] }} - {{ event['date'] }}</h3>
+                    <p>{{ event['description'] }}</p>
+                    <form action="{{ url_for('delete_event', id=event['id']) }}" method="post">
+                        <input type="submit" value="Delete">
+                    </form>
+                    <a href="{{ url_for('edit_event', id=event['id']) }}" class="button">Edit</a>
+                </div>
+            {% endfor %}
         </div>
-    {% endfor %}
 
-    <a href="{{ url_for('create_event') }}">Create New Event</a>
+        <div class="section create-event">
+            <a href="{{ url_for('create_event') }}" class="button">Create New Event</a>
+        </div>
+    </div>
+
+    <footer>
+        © 2024 Event Management System. Created by Eya Bouzayen
+    </footer>
 </body>
 </html>
