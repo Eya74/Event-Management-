@@ -1,0 +1,16 @@
+@app.route('/edit_event/<int:id>')
+def edit_event(id):
+    try:
+        conn = sqlite3.connect('events.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM events WHERE id = ?', (id,))
+        event = cursor.fetchone()
+        conn.close()
+        if event:
+            return render_template('edit_event.html', event=event)  # Pass event to the template
+        else:
+            flash('Event not found.', 'error')
+            return redirect(url_for('home'))
+    except sqlite3.Error as e:
+        flash(f"An error occurred: {str(e)}", 'error')
+        return redirect(url_for('home'))

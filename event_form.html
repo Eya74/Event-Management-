@@ -3,63 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Event</title>
+    <title>{% if event %}Edit Event{% else %}Create Event{% endif %}</title>
     <link rel="stylesheet" href="styles.css"> <!-- Include your CSS if needed -->
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #e6f2ff;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-        h1 {
-            text-align: center;
-            color: #d84315;
-        }
-        label {
-            display: block;
-            margin-top: 15px;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        button {
-            background-color: #3498db;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 20px;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-    </style>
 </head>
 <body>
-    <h1>Edit Event</h1>
-    <form action="{{ url_for('update_event', id=event[0]) }}" method="POST">
+    <h1>{% if event %}Edit Event{% else %}Create New Event{% endif %}</h1>
+    <form action="{{ url_for('update_event', id=event[0]) if event else url_for('submit_event') }}" method="post">
         <label for="name">Event Name:</label>
-        <input type="text" id="name" name="name" required value="{{ event[1] }}">
+        <input type="text" id="name" name="name" required value="{{ event[1] if event else '' }}">
 
         <label for="date">Event Date:</label>
-        <input type="date" id="date" name="date" required value="{{ event[2] }}">
+        <input type="date" id="date" name="date" required value="{{ event[2] if event else '' }}">
 
         <label for="description">Event Description:</label>
-        <textarea id="description" name="description" required>{{ event[3] }}</textarea>
+        <textarea id="description" name="description" required>{{ event[3] if event else '' }}</textarea>
 
-        <button type="submit">Update Event</button>
+        <button type="submit">{% if event %}Update Event{% else %}Create Event{% endif %}</button>
     </form>
-    <a href="{{ url_for('home') }}" class="button">Back to Home</a>
+    <a href="{{ url_for('home') }}">Back to Home</a>
 </body>
 </html>
