@@ -6,11 +6,19 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'fallback_secret_key')
 
-# Use PostgreSQL database URL from Railway when deployed, otherwise use SQLite
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///events.db')
-if app.config['SQLALCHEMY_DATABASE_URI'].startswith("postgres://"):
-    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace("postgres://", "postgresql://", 1)
+# Database configuration
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Handle potential "postgres://" style URLs for Railway
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+else:
+    database_url = 'sqlite:///events.db'
 
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize SQLAlchemy after all configurations are set
 db = SQLAlchemy(app)
 
 class Event(db.Model):
@@ -18,6 +26,11 @@ class Event(db.Model):
     name = db.Column(db.String(100), nullable=False)
     date = db.Column(db.String(10), nullable=False)
     description = db.Column(db.Text, nullable=False)
+
+# Ensure all routes are registered before running create_all()
+@app.before_first_request
+def create_tables():
+    db.create_all()
 
 @app.route('/')
 def home():
@@ -32,10 +45,13 @@ def create_event():
         description = request.form['description']
         
         new_event = Event(name=name, date=date, description=description)
-        db.session.add(new_event)
-        db.session.commit()
-        
-        flash('Event created successfully!', 'success')
+        try:
+            db.session.add(new_event)
+            db.session.commit()
+            flash('Event created successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating event: {str(e)}', 'error')
         return redirect(url_for('home'))
     return render_template('event_form.html', event=None)
 
@@ -44,12 +60,15 @@ def edit_event(id):
     event = Event.query.get_or_404(id)
     
     if request.method == 'POST':
-        event.name = request.form['name']
-        event.date = request.form['date']
-        event.description = request.form['description']
-        
-        db.session.commit()
-        flash('Event updated successfully!', 'success')
+        try:
+            event.name = request.form['name']
+            event.date = request.form['date']
+            event.description = request.form['description']
+            db.session.commit()
+            flash('Event updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating event: {str(e)}', 'error')
         return redirect(url_for('home'))
     
     return render_template('event_form.html', event=event)
@@ -57,13 +76,15 @@ def edit_event(id):
 @app.route('/delete_event/<int:id>', methods=['POST'])
 def delete_event(id):
     event = Event.query.get_or_404(id)
-    db.session.delete(event)
-    db.session.commit()
-    flash('Event deleted successfully!', 'success')
+    try:
+        db.session.delete(event)
+        db.session.commit()
+        flash('Event deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting event: {str(e)}', 'error')
     return redirect(url_for('home'))
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
