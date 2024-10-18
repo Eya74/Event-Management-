@@ -3,23 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if event %}Edit Event{% else %}Create Event{% endif %}</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Include your CSS if needed -->
+    <title>{% if event %}Edit Event{% else %}Create New Event{% endif %}</title>
 </head>
 <body>
     <h1>{% if event %}Edit Event{% else %}Create New Event{% endif %}</h1>
-    <form action="{{ url_for('update_event', id=event[0]) if event else url_for('submit_event') }}" method="post">
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul>
+            {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST" action="{{ url_for('edit_event', id=event.id) if event else url_for('create_event') }}">
         <label for="name">Event Name:</label>
-        <input type="text" id="name" name="name" required value="{{ event[1] if event else '' }}">
-
+        <input type="text" id="name" name="name" value="{{ event.name if event else '' }}" required>
+        
         <label for="date">Event Date:</label>
-        <input type="date" id="date" name="date" required value="{{ event[2] if event else '' }}">
-
+        <input type="date" id="date" name="date" value="{{ event.date if event else '' }}" required>
+        
         <label for="description">Event Description:</label>
-        <textarea id="description" name="description" required>{{ event[3] if event else '' }}</textarea>
-
+        <textarea id="description" name="description" required>{{ event.description if event else '' }}</textarea>
+        
         <button type="submit">{% if event %}Update Event{% else %}Create Event{% endif %}</button>
     </form>
+    
     <a href="{{ url_for('home') }}">Back to Home</a>
 </body>
 </html>
