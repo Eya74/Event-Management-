@@ -8,20 +8,21 @@ app.secret_key = 'your_secret_key_here'  # Required for flashing messages
 def init_db():
     conn = sqlite3.connect('events.db')
     cursor = conn.cursor()
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS events (
+    cursor.execute('''CREATE TABLE IF NOT EXISTS events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        date TEXT NOT NULL
-    )
-    ''')
+        date TEXT NOT NULL,
+        description TEXT NOT NULL  -- Added description column
+    )''')
     conn.commit()
     conn.close()
 
-def validate_event(name, date):
+def validate_event(name, date, description):
     errors = []
     if not name or len(name) < 3:
         errors.append("Event name must be at least 3 characters long.")
+    if not description or len(description) < 10:
+        errors.append("Event description must be at least 10 characters long.")
     try:
         datetime.strptime(date, '%Y-%m-%d')
     except ValueError:
@@ -49,24 +50,25 @@ def create_event():
 def submit_event():
     name = request.form['name']
     date = request.form['date']
+    description = request.form['description']  # Get the description from the form
     
-    errors = validate_event(name, date)
+    errors = validate_event(name, date, description)  # Validate with description
     if errors:
         for error in errors:
             flash(error, 'error')
-        return render_template('event_form.html', name=name, date=date)
+        return render_template('event_form.html', name=name, date=date, description=description)
     
     try:
         conn = sqlite3.connect('events.db')
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO events (name, date) VALUES (?, ?)', (name, date))
+        cursor.execute('INSERT INTO events (name, date, description) VALUES (?, ?, ?)', (name, date, description))
         conn.commit()
         conn.close()
         flash('Event created successfully!', 'success')
         return redirect(url_for('home'))
     except sqlite3.Error as e:
         flash(f"An error occurred while creating the event: {str(e)}", 'error')
-        return render_template('event_form.html', name=name, date=date)
+        return render_template('event_form.html', name=name, date=date, description=description)
 
 @app.route('/delete_event/<int:id>', methods=['POST'])
 def delete_event(id):
@@ -102,24 +104,25 @@ def edit_event(id):
 def update_event(id):
     name = request.form['name']
     date = request.form['date']
+    description = request.form['description']  # Get the updated description
     
-    errors = validate_event(name, date)
+    errors = validate_event(name, date, description)  # Validate with description
     if errors:
         for error in errors:
             flash(error, 'error')
-        return render_template('edit_event.html', event=(id, name, date))
+        return render_template('edit_event.html', event=(id, name, date, description))
     
     try:
         conn = sqlite3.connect('events.db')
         cursor = conn.cursor()
-        cursor.execute('UPDATE events SET name = ?, date = ? WHERE id = ?', (name, date, id))
+        cursor.execute('UPDATE events SET name = ?, date = ?, description = ? WHERE id = ?', (name, date, description, id))
         conn.commit()
         conn.close()
         flash('Event updated successfully!', 'success')
         return redirect(url_for('home'))
     except sqlite3.Error as e:
         flash(f"An error occurred while updating the event: {str(e)}", 'error')
-        return render_template('edit_event.html', event=(id, name, date))
+        return render_template('edit_event.html', event=(id, name, date, description))
 
 if __name__ == '__main__':
     init_db()
