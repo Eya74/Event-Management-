@@ -1,7 +1,7 @@
 {
     "name": "event-management-system",
     "version": "1.0.0",
-    "description": "Event management system using Node.js and Express",
+    "description": "Event management system using  and Express",
     "main": "app.js",
     "scripts": {
       "start": "node app.js",
