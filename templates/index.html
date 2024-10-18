@@ -6,80 +6,71 @@
     <title>Event Management System</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             line-height: 1.6;
             color: #333;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background: linear-gradient(to bottom right, #e6f2ff, #ffffff);
+            background-color: #f4f4f4;
         }
         header {
-            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            background-color: #3498db;
             color: #fff;
             text-align: center;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            padding: 1rem;
             margin-bottom: 20px;
         }
         header img {
-            max-width: 100px; /* Adjust the size as needed */
-            margin-bottom: 10px;
+            max-width: 100%;
+            height: auto;
         }
         h1 {
             margin: 0;
-            font-size: 2.5em;
         }
         .event-list {
-            background-color: #ffffff;
-            border-radius: 10px;
+            background-color: #fff;
+            border-radius: 5px;
             padding: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .event-item {
-            background: linear-gradient(to right, #e0f7fa, #f1f8e9);
+            background-color: #e8f4fd;
             border: 1px solid #bde0fe;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            transition: transform 0.2s;
-        }
-        .event-item:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
         }
         .event-item h3 {
             margin-top: 0;
-            color: #d84315;
-            font-size: 1.5em;
+            color: #2980b9;
         }
         .button {
             display: inline-block;
-            background: linear-gradient(to right, #8e44ad, #3498db);
+            background-color: #3498db;
             color: #fff;
-            padding: 10px 15px;
+            padding: 5px 10px;
             text-decoration: none;
-            border-radius: 5px;
-            font-size: 1em;
-            transition: background 0.3s;
+            border-radius: 3px;
+            font-size: 0.9em;
+            border: none;
+            cursor: pointer;
         }
         .button:hover {
-            background: linear-gradient(to right, #2980b9, #8e44ad);
+            background-color: #2980b9;
         }
         .create-event {
-            margin-top: 30px;
+            margin-top: 20px;
             text-align: center;
         }
         .create-event .button {
-            font-size: 1.2em;
-            padding: 12px 25px;
+            font-size: 1em;
+            padding: 10px 20px;
         }
         footer {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 20px;
             color: #777;
-            font-style: italic;
         }
     </style>
 </head>
@@ -92,27 +83,25 @@
     <main>
         <section class="event-list">
             <h2>Upcoming Events</h2>
-            <div class="event-item">
-                <h3>Orchestra 2025 - 2025-05-01</h3>
-                <p>Join us for a night of classical music performed by our esteemed orchestra.</p>
-                <a href="#" class="button">Edit</a>
-                <a href="#" class="button">Delete</a>
-            </div>
-            <div class="event-item">
-                <h3>Media Celebration - 2024-12-08</h3>
-                <p>Annual gala celebrating achievements in media and journalism.</p>
-                <a href="#" class="button">Edit</a>
-                <a href="#" class="button">Delete</a>
-            </div>
+            {% for event in events %}
+                <div class="event-item">
+                    <h3>{{ event[1] }} - {{ event[2] }}</h3>
+                    <p>Description: {{ event[3] }}</p>
+                    <a href="{{ url_for('edit_event', id=event[0]) }}" class="button">Edit</a>
+                    <form action="{{ url_for('delete_event', id=event[0]) }}" method="post" style="display:inline;">
+                        <button type="submit" class="button">Delete</button>
+                    </form>
+                </div>
+            {% endfor %}
         </section>
         
         <section class="create-event">
-            <a href="#" class="button">Create New Event</a>
+            <a href="{{ url_for('create_event') }}" class="button">Create New Event</a>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2024 Event Management System. Created by [Your Name]</p>
+        <p>&copy; 2024 Event Management System. Created by Eya Bouzayen</p>
     </footer>
 </body>
 </html>

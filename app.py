@@ -8,12 +8,14 @@ app.secret_key = 'your_secret_key_here'  # Required for flashing messages
 def init_db():
     conn = sqlite3.connect('events.db')
     cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS events (
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         date TEXT NOT NULL,
-        description TEXT NOT NULL  -- Added description column
-    )''')
+        description TEXT NOT NULL  -- Added description field
+    )
+    ''')
     conn.commit()
     conn.close()
 
@@ -21,12 +23,12 @@ def validate_event(name, date, description):
     errors = []
     if not name or len(name) < 3:
         errors.append("Event name must be at least 3 characters long.")
-    if not description or len(description) < 10:
-        errors.append("Event description must be at least 10 characters long.")
     try:
         datetime.strptime(date, '%Y-%m-%d')
     except ValueError:
         errors.append("Invalid date format. Please use YYYY-MM-DD.")
+    if not description or len(description) < 5:
+        errors.append("Event description must be at least 5 characters long.")
     return errors
 
 @app.route('/')
@@ -50,9 +52,9 @@ def create_event():
 def submit_event():
     name = request.form['name']
     date = request.form['date']
-    description = request.form['description']  # Get the description from the form
+    description = request.form['description']  # Capture description
     
-    errors = validate_event(name, date, description)  # Validate with description
+    errors = validate_event(name, date, description)
     if errors:
         for error in errors:
             flash(error, 'error')
@@ -61,7 +63,7 @@ def submit_event():
     try:
         conn = sqlite3.connect('events.db')
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO events (name, date, description) VALUES (?, ?, ?)', (name, date, description))
+        cursor.execute('INSERT INTO events (name, date, description) VALUES (?, ?, ?)', (name, date, description))  # Insert description
         conn.commit()
         conn.close()
         flash('Event created successfully!', 'success')
@@ -104,9 +106,9 @@ def edit_event(id):
 def update_event(id):
     name = request.form['name']
     date = request.form['date']
-    description = request.form['description']  # Get the updated description
+    description = request.form['description']  # Capture updated description
     
-    errors = validate_event(name, date, description)  # Validate with description
+    errors = validate_event(name, date, description)
     if errors:
         for error in errors:
             flash(error, 'error')
@@ -115,7 +117,7 @@ def update_event(id):
     try:
         conn = sqlite3.connect('events.db')
         cursor = conn.cursor()
-        cursor.execute('UPDATE events SET name = ?, date = ?, description = ? WHERE id = ?', (name, date, description, id))
+        cursor.execute('UPDATE events SET name = ?, date = ?, description = ? WHERE id = ?', (name, date, description, id))  # Update description
         conn.commit()
         conn.close()
         flash('Event updated successfully!', 'success')
